@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#276884">
+    <title>Take 5</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>5</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --teal: #276884;
+            --navy: #004F6C;
+            --grey: #5F6B70;
+            --bg: #F2F2F2;
+            --red: #C10841;
+            --orange: #F89406;
+            --green: #738D00;
+            --line: #B8C4C9;
+            --text: #1E1E1E;
+        }
+        * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: "Open Sans", "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        button, input, select, textarea { font: inherit; color: inherit; }
+        button { cursor: pointer; }
+        h1, h2, p { margin: 0; }
+        .wrap { max-width: 760px; margin: 0 auto; }
+        .topbar { background: #fff; position: sticky; top: 0; z-index: 5; }
+        .accent { height: 3px; background: var(--teal); }
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 16px 10px;
+            background: #fff;
+        }
+        .brand img { width: min(75%, 420px); height: auto; }
+        .brand h1 { color: var(--teal); font-size: 28px; font-weight: 600; margin-top: 4px; }
+        .bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 56px;
+            padding: 6px 8px;
+            background: #fff;
+        }
+        .bar img { height: 30px; width: auto; }
+        .bar h1 { color: var(--teal); font-size: 18px; font-weight: 600; flex: 1; }
+        .icon-btn {
+            border: 0;
+            background: transparent;
+            color: var(--teal);
+            width: 44px;
+            height: 44px;
+            border-radius: 4px;
+            font-size: 22px;
+        }
+        .icon-btn.danger { color: var(--grey); }
+        .page { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .hero { background: var(--teal); color: #fff; border-radius: 8px; padding: 18px; }
+        .hero h2 { font-size: 22px; font-weight: 600; }
+        .hero p { margin-top: 4px; opacity: 0.92; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 0;
+            border-radius: 4px;
+            background: var(--teal);
+            color: #fff;
+            font-weight: 700;
+            min-height: 52px;
+            padding: 10px 16px;
+            width: 100%;
+        }
+        .btn.light { background: #fff; color: var(--teal); margin-top: 14px; }
+        .btn.outline { background: #fff; color: var(--teal); border: 1px solid var(--teal); font-weight: 600; }
+        .btn:disabled { opacity: 0.6; cursor: default; }
+        .row-btns { display: flex; gap: 8px; }
+        .row-btns .btn { flex: 1; min-height: 48px; }
+        .section-label { color: var(--navy); font-weight: 600; font-size: 14px; margin: 4px 4px 0; }
+        .muted { color: var(--grey); }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); overflow: hidden; }
+        .history { padding: 14px; text-align: left; border: 0; width: 100%; }
+        .history strong, .history span { display: block; }
+        .history .sub { margin-top: 2px; }
+        .ok { color: var(--green); font-size: 13px; }
+        .bad { color: var(--red); font-size: 13px; }
+        .card-h {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--teal);
+            color: #fff;
+            padding: 10px 14px;
+        }
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--teal);
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            flex: none;
+        }
+        .card-h small { display: block; opacity: 0.85; font-size: 13px; }
+        .card-b { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field span { font-size: 13px; font-weight: 600; color: var(--navy); }
+        input[type="text"], input[type="email"], select, textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 12px;
+            background: #fff;
+            font-size: 16px;
+        }
+        textarea { min-height: 96px; resize: vertical; }
+        input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal); border-color: var(--teal); }
+        .check {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 4px 0;
+            cursor: pointer;
+        }
+        .check input { width: 22px; height: 22px; margin-top: 1px; accent-color: var(--teal); flex: none; }
+        .q { font-weight: 600; }
+        .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 16px;
+            padding: 6px 14px;
+            font-weight: 600;
+        }
+        .chip.yes { background: var(--green); border-color: var(--green); color: #fff; }
+        .chip.no { background: var(--red); border-color: var(--red); color: #fff; }
+        .chip.na { background: var(--grey); border-color: var(--grey); color: #fff; }
+        .warn {
+            background: var(--orange);
+            color: #fff;
+            border-radius: 4px;
+            padding: 12px;
+            font-weight: 600;
+        }
+        .photos { display: flex; gap: 8px; overflow-x: auto; }
+        .photo { position: relative; flex: none; }
+        .photo img { width: 104px; height: 104px; object-fit: cover; border-radius: 4px; display: block; }
+        .photo-x {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+        }
+        .sig-wrap { border: 1px solid var(--line); border-radius: 4px; background: #fff; touch-action: none; }
+        canvas.sig { width: 100%; height: 170px; display: block; touch-action: none; }
+        .sig-row { display: flex; align-items: center; justify-content: space-between; }
+        .linkish { border: 0; background: transparent; color: var(--teal); font-weight: 600; padding: 8px; }
+        .loc { display: flex; gap: 8px; align-items: center; }
+        .info span { display: block; font-size: 13px; font-weight: 600; color: var(--grey); }
+        .shot { width: 100%; border-radius: 4px; }
+        .sig-view { width: 100%; max-height: 160px; object-fit: contain; background: #fff; border: 1px solid var(--line); border-radius: 4px; }
+        .modal-back {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 20;
+        }
+        .modal { background: #fff; border-radius: 8px; max-width: 440px; width: 100%; padding: 20px; }
+        .modal h2 { font-size: 20px; margin-bottom: 8px; }
+        .modal p, .modal li { margin: 0 0 8px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+        .modal-actions .btn { width: auto; min-height: 44px; }
+        .busy {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+        }
+        .busy div { background: #fff; border-radius: 8px; padding: 24px; display: flex; gap: 16px; align-items: center; }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--line);
+            border-top-color: var(--teal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .snack {
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            max-width: 736px;
+            margin: 0 auto;
+            background: #323232;
+            color: #fff;
+            padding: 14px 16px;
+            border-radius: 4px;
+            z-index: 30;
+        }
+        .note { font-size: 13px; color: var(--grey); padding: 0 4px 12px; }
+        a { color: var(--teal); }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <div id="modal"></div>
+    <div id="toast" hidden></div>
+    <script>
+        const COMPANY = "In Vitro Technologies";
+        const INBOX = "david.bailey@invitro.com.au";
+        const LOGO = "app/src/main/res/drawable-nodpi/ivt_logo.png";
+        const DECLARATION = "I have stopped and thought about this job, identified the hazards and put controls in place. I will stop work and reassess if conditions change.";
+
+        const machineTypes = [
+            "Washer/Disinfector", "Steam Steriliser", "Low Temperature Steriliser", "Heat Sealer",
+            "Wash Racks / Load Carriers", "Trolleys", "Conveyor / Rack Return System", "Ultrasonic Cleaner",
+            "Drying Cabinet", "Endoscope Reprocessor", "Water Treatment / RO Plant", "Other"
+        ];
+        const jobTypes = [
+            "Installation", "Preventive Maintenance / Service", "Breakdown / Repair", "Validation / Testing",
+            "Commissioning", "Decommission / Removal", "Inspection / Quote", "Other"
+        ];
+        const hazards = [
+            "Hot surfaces, steam or hot water",
+            "Pressurised systems (steam, air, water)",
+            "Electrical (live work, 3-phase, stored energy)",
+            "Chemicals (detergents, H2O2, peracetic acid, descalers)",
+            "Biological / contaminated instruments or water",
+            "Sharps",
+            "Manual handling / heavy lifting",
+            "Moving parts, doors, conveyors, pinch points",
+            "Wet floors, slips, trips & falls",
+            "Working at height (ladders, plant rooms)",
+            "Confined or restricted space",
+            "Noise",
+            "Hot work (welding, brazing, soldering)",
+            "Building services (gas, water, drainage)",
+            "Dust, silica or asbestos (wall/floor penetrations)",
+            "Hospital staff, patients or public in work area",
+            "Working alone, after hours or fatigue"
+        ];
+        const controls = [
+            "Equipment isolated and locked out / tagged out (LOTO)",
+            "Steam / pressure released and zero energy verified",
+            "Equipment allowed to cool",
+            "Correct PPE worn (gloves, glasses, safety boots, hearing)",
+            "SDS reviewed for chemicals in use",
+            "Area barricaded and signage in place",
+            "CSSD / department manager notified",
+            "Site permit obtained (hot work, isolation, height)",
+            "Infection control requirements followed",
+            "Mechanical aids or team lift for heavy items",
+            "Spill kit and first aid accessible",
+            "Tools and test equipment inspected (test & tag current)"
+        ];
+        const readinessQuestions = [
+            "Do I have the skills, training and licences for this task?",
+            "Do I have the right tools, test equipment and PPE?",
+            "Has the site / department contact been notified?",
+            "Can the equipment be safely isolated (electrical, steam, water, air, chemical)?",
+            "Have I checked site permits and requirements (hot work, infection control)?",
+            "Do I know the emergency procedure and assembly point?"
+        ];
+        const answers = ["Yes", "No", "N/A"];
+
+        const app = document.getElementById("app");
+        const modal = document.getElementById("modal");
+        const toast = document.getElementById("toast");
+        let screen = "home";
+        let toastTimer = 0;
+
+        function h(tag, props) {
+            const n = document.createElement(tag);
+            const kids = Array.prototype.slice.call(arguments, 2).flat(Infinity);
+            Object.entries(props || {}).forEach(function (pair) {
+                const k = pair[0], v = pair[1];
+                if (k === "class") n.className = v;
+                else if (k === "text") n.textContent = v;
+                else if (k === "hidden") n.hidden = !!v;
+                else if (k === "checked" || k === "disabled" || k === "value") n[k] = v;
+                else if (typeof v === "function" && k.indexOf("on") === 0) n.addEventListener(k.slice(2).toLowerCase(), v);
+                else if (v !== false && v != null) n.setAttribute(k, v);
+            });
+            kids.forEach(function (kid) {
+                if (kid == null || kid === false) return;
+                n.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+            });
+            return n;
+        }
+
+        function dateTime(ms) {
+            const d = new Date(ms);
+            const wd = d.toLocaleDateString("en-AU", { weekday: "short" });
+            const mon = d.toLocaleDateString("en-AU", { month: "short" });
+            let hr = d.getHours();
+            const ap = hr >= 12 ? "pm" : "am";
+            hr = hr % 12 || 12;
+            const min = String(d.getMinutes()).padStart(2, "0");
+            return wd + " " + d.getDate() + " " + mon + " " + d.getFullYear() + ", " + hr + ":" + min + " " + ap;
+        }
+        function shortDate(ms) {
+            const d = new Date(ms);
+            const mon = d.toLocaleDateString("en-AU", { month: "short" });
+            return d.getDate() + " " + mon + " " + d.getFullYear();
+        }
+        function fileStamp(ms) {
+            const d = new Date(ms);
+            const p = function (n) { return String(n).padStart(2, "0"); };
+            return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "_" + p(d.getHours()) + p(d.getMinutes());
+        }
+        function safeFileName(text) {
+            const cleaned = text.trim().replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40);
+            return cleaned || "Site";
+        }
+        function coordinates(lat, lng, accuracy) {
+            let s = lat.toFixed(6) + ", " + lng.toFixed(6);
+            if (accuracy != null && !Number.isNaN(Number(accuracy))) s += " (±" + Math.round(accuracy) + " m)";
+            return s;
+        }
+        function mapsLink(r) {
+            if (r.latitude == null || r.longitude == null) return "";
+            return "https://maps.google.com/?q=" + r.latitude + "," + r.longitude;
+        }
+
+        function openDb() {
+            return new Promise(function (resolve, reject) {
+                const req = indexedDB.open("ivt-take5", 1);
+                req.onupgradeneeded = function () { req.result.createObjectStore("records", { keyPath: "id" }); };
+                req.onsuccess = function () { resolve(req.result); };
+                req.onerror = function () { reject(req.error); };
+            });
+        }
+        function withStore(mode, fn) {
+            return openDb().then(function (db) {
+                return new Promise(function (resolve, reject) {
+                    const tx = db.transaction("records", mode);
+                    const result = fn(tx.objectStore("records"));
+                    tx.oncomplete = function () { resolve(result); };
+                    tx.onerror = function () { reject(tx.error); };
+                });
+            });
+        }
+        function loadAll() {
+            return openDb().then(function (db) {
+                return new Promise(function (resolve, reject) {
+                    const tx = db.transaction("records", "readonly");
+                    const req = tx.objectStore("records").getAll();
+                    req.onsuccess = function () {
+                        resolve(req.result.sort(function (a, b) { return b.completedAt - a.completedAt; }));
+                    };
+                    req.onerror = function () { reject(req.error); };
+                });
+            });
+        }
+        function loadOne(id) {
+            return openDb().then(function (db) {
+                return new Promise(function (resolve, reject) {
+                    const req = db.transaction("records", "readonly").objectStore("records").get(id);
+                    req.onsuccess = function () { resolve(req.result || null); };
+                    req.onerror = function () { reject(req.error); };
+                });
+            });
+        }
+        function saveRecord(record) {
+            return withStore("readwrite", function (store) { store.put(record); });
+        }
+        function deleteRecord(id) {
+            return withStore("readwrite", function (store) { store.delete(id); });
+        }
+
+        function logo(className) {
+            const img = h("img", { src: LOGO, alt: COMPANY });
+            if (className) img.className = className;
+            img.addEventListener("error", function () { img.remove(); });
+            return img;
+        }
+        function shell(title, onBack, extra, bodyNodes) {
+            const barKids = [];
+            if (onBack) barKids.push(h("button", { class: "icon-btn", type: "button", "aria-label": "Back", onClick: onBack }, "←"));
+            barKids.push(logo(), h("h1", { text: title }));
+            if (extra) barKids.push(extra);
+            const header = onBack || extra
+                ? h("div", { class: "topbar" }, h("div", { class: "bar" }, barKids), h("div", { class: "accent" }))
+                : h("div", { class: "topbar" }, h("div", { class: "brand" }, logo(), h("h1", { text: title })), h("div", { class: "accent" }));
+            app.replaceChildren(h("div", { class: "wrap" }, header, h("div", { class: "page" }, bodyNodes)));
+        }
+        function card(step, title, subtitle) {
+            const body = h("div", { class: "card-b" });
+            const headText = h("div", {}, h("strong", { text: title }));
+            if (subtitle) headText.append(h("small", { text: subtitle }));
+            const node = h("section", { class: "card" },
+                h("div", { class: "card-h" }, h("div", { class: "step", text: step }), headText),
+                body
+            );
+            Array.prototype.slice.call(arguments, 3).flat().forEach(function (kid) { if (kid) body.append(kid); });
+            return node;
+        }
+        function field(label, required, control) {
+            return h("label", { class: "field" }, h("span", { text: required ? label + " *" : label }), control);
+        }
+        function textInput(value, oninput, opts) {
+            opts = opts || {};
+            const input = h(opts.multiline ? "textarea" : "input", {
+                type: "text",
+                value: opts.multiline ? undefined : value,
+                autocapitalize: opts.cap || "sentences"
+            });
+            if (opts.multiline) input.value = value;
+            input.addEventListener("input", function () { oninput(input.value); });
+            return input;
+        }
+        function selectInput(options, value, onchange) {
+            const sel = h("select", {}, h("option", { value: "", text: "Select…" }));
+            options.forEach(function (opt) {
+                sel.append(h("option", { value: opt, text: opt, selected: opt === value ? "selected" : false }));
+            });
+            sel.value = value || "";
+            sel.addEventListener("change", function () { onchange(sel.value); });
+            return sel;
+        }
+        function snack(message) {
+            toast.hidden = false;
+            toast.className = "snack";
+            toast.textContent = message;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () { toast.hidden = true; }, 6000);
+        }
+        function closeModal() { modal.replaceChildren(); }
+        function showModal(node) { modal.replaceChildren(h("div", { class: "modal-back", onClick: function (e) { if (e.target === e.currentTarget) closeModal(); } }, node)); }
+        function messageDialog(title, lines) {
+            showModal(h("div", { class: "modal", role: "dialog", "aria-modal": "true" },
+                h("h2", { text: title }),
+                h("ul", {}, lines.map(function (line) { return h("li", { text: line }); })),
+                h("div", { class: "modal-actions" }, h("button", { class: "btn", type: "button", onClick: closeModal }, "OK"))
+            ));
+        }
+        function confirmDialog(title, text, confirmLabel, onConfirm, danger) {
+            const confirm = h("button", { class: "btn", type: "button", onClick: function () { closeModal(); onConfirm(); } }, confirmLabel);
+            if (danger) confirm.style.background = "var(--red)";
+            showModal(h("div", { class: "modal", role: "dialog", "aria-modal": "true" },
+                h("h2", { text: title }),
+                h("p", { text: text }),
+                h("div", { class: "modal-actions" },
+                    h("button", { class: "btn outline", type: "button", onClick: closeModal }, danger ? "Cancel" : "Back"),
+                    confirm
+                )
+            ));
+        }
+        function setBusy(on) {
+            const existing = document.getElementById("busy");
+            if (!on) { if (existing) existing.remove(); return; }
+            if (existing) return;
+            document.body.append(h("div", { id: "busy", class: "busy" }, h("div", {}, h("div", { class: "spinner" }), h("span", { text: "Creating report…" }))));
+        }
+
+        function subjectOf(r) {
+            return "Take 5 – " + r.site + " – " + r.machineType + " – " + r.technician + " – " + shortDate(r.completedAt);
+        }
+        function bodyOf(r) {
+            const lines = [
+                COMPANY + " – TAKE 5 / JHA PRE-JOB RISK ASSESSMENT",
+                "Full report (PDF) and photos attached.",
+                "",
+                "JOB DETAILS",
+                "Technician: " + r.technician,
+                "Site: " + r.site
+            ];
+            if (r.department) lines.push("Department / location: " + r.department);
+            lines.push("Machine type: " + r.machineType);
+            if (r.makeModel) lines.push("Make / model: " + r.makeModel);
+            if (r.serialNumber) lines.push("Serial / asset no: " + r.serialNumber);
+            if (r.jobNumber) lines.push("Job / work order no: " + r.jobNumber);
+            lines.push("Job type: " + r.jobType, "Scope of work: " + r.scopeOfWork, "", "HAZARDS IDENTIFIED");
+            r.hazards.forEach(function (item) { lines.push("• " + item); });
+            lines.push("", "CONTROLS");
+            r.controlChecks.forEach(function (item) { lines.push("✓ " + item); });
+            if (r.controlMeasures) lines.push("Other controls: " + r.controlMeasures);
+            lines.push("", "READINESS CHECK");
+            r.readiness.forEach(function (item) { lines.push("[" + item.a + "] " + item.q); });
+            lines.push("", "TIME & LOCATION", "Started: " + dateTime(r.startedAt), "Completed: " + dateTime(r.completedAt));
+            if (r.latitude != null && r.longitude != null) {
+                lines.push("GPS: " + coordinates(r.latitude, r.longitude, r.accuracyMetres));
+                lines.push("Map: " + mapsLink(r));
+            } else lines.push("GPS: not available");
+            lines.push("", "Signed by " + r.technician + ". Photos attached: " + r.photos.length, "Ref: " + r.id);
+            return lines.join("\n");
+        }
+        function mailtoUrl(r) {
+            let text = bodyOf(r);
+            let url = "mailto:" + INBOX + "?subject=" + encodeURIComponent(subjectOf(r)) + "&body=" + encodeURIComponent(text);
+            if (url.length > 1800) {
+                text = COMPANY + " – TAKE 5 / JHA PRE-JOB RISK ASSESSMENT\n\nThe full report is in the PDF downloaded with this email.\n\nTechnician: " + r.technician + "\nSite: " + r.site + "\nMachine type: " + r.machineType + "\nJob type: " + r.jobType + "\nScope of work: " + r.scopeOfWork + "\nRef: " + r.id;
+                url = "mailto:" + INBOX + "?subject=" + encodeURIComponent(subjectOf(r)) + "&body=" + encodeURIComponent(text);
+            }
+            return url;
+        }
+        function dataUrlToBlob(dataUrl) {
+            const parts = dataUrl.split(",");
+            const mime = /data:(.*?);/.exec(parts[0])[1];
+            const bin = atob(parts[1]);
+            const arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            return new Blob([arr], { type: mime });
+        }
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = h("a", { href: url, download: filename });
+            document.body.append(a);
+            a.click();
+            a.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        }
+        function openBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const opened = window.open(url, "_blank");
+            if (!opened) downloadBlob(blob, filename);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+        }
+        function imageSize(src) {
+            return new Promise(function (resolve, reject) {
+                const img = new Image();
+                img.onload = function () { resolve({ w: img.naturalWidth, h: img.naturalHeight }); };
+                img.onerror = reject;
+                img.src = src;
+            });
+        }
+        function esc(s) {
+            return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+        function printReport(record) {
+            const win = window.open("", "_blank");
+            if (!win) return;
+            const rows = [
+                ["Technician", record.technician], ["Site", record.site], ["Department / location", record.department],
+                ["Machine type", record.machineType], ["Make / model", record.makeModel], ["Serial / asset no.", record.serialNumber],
+                ["Job / work order no.", record.jobNumber], ["Job type", record.jobType], ["Scope of work", record.scopeOfWork]
+            ];
+            let html = "<!DOCTYPE html><html><head><title>Take 5</title><style>body{font-family:sans-serif;margin:24px;color:#1e1e1e}h1{color:#276884}h2{background:#276884;color:#fff;padding:6px 8px;font-size:16px}td{vertical-align:top;padding:4px 8px 4px 0}td:first-child{color:#5f6b70;font-weight:700;width:180px}</style></head><body>";
+            html += "<h1>Take 5</h1><p>Pre-job risk assessment / JHA</p><p><strong>" + esc(record.site) + " · " + esc(record.machineType) + "</strong></p>";
+            html += "<h2>1. Stop &amp; think – Job details</h2><table>";
+            rows.forEach(function (row) { html += "<tr><td>" + esc(row[0]) + "</td><td>" + esc(row[1] || "—") + "</td></tr>"; });
+            html += "</table><h2>2. Hazards and risks</h2><ul>";
+            record.hazards.forEach(function (item) { html += "<li>" + esc(item) + "</li>"; });
+            html += "</ul><h2>3. Controls</h2><ul>";
+            record.controlChecks.forEach(function (item) { html += "<li>" + esc(item) + "</li>"; });
+            if (record.controlMeasures) html += "<p>" + esc(record.controlMeasures) + "</p>";
+            html += "</ul><h2>4. Proceed safely – Readiness check</h2><table>";
+            record.readiness.forEach(function (item) { html += "<tr><td>" + esc(item.q) + "</td><td>" + esc(item.a) + "</td></tr>"; });
+            html += "</table><h2>Time &amp; location</h2><p>Started " + esc(dateTime(record.startedAt)) + "<br>Completed " + esc(dateTime(record.completedAt)) + "</p>";
+            html += "<h2>Declaration</h2><p>" + esc(DECLARATION) + "</p>";
+            if (record.signature) html += "<img alt='Signature' src='" + record.signature + "' style='width:240px'>";
+            html += "<p>Signed by " + esc(record.technician) + "</p>";
+            record.photos.forEach(function (src) { html += "<img alt='Photo' src='" + src + "' style='width:240px;margin:8px'>"; });
+            html += "<script>window.onload=function(){window.print()}<\/script></body></html>";
+            win.document.write(html);
+            win.document.close();
+        }
+
+        async function buildPdf(record) {
+            if (!window.jspdf) throw new Error("PDF library did not load");
+            const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+            const margin = 14;
+            const pageW = 210;
+            const contentW = pageW - margin * 2;
+            let y = margin;
+            let page = 1;
+            const teal = [39, 104, 132];
+            function endPage() {
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.setTextColor(95, 107, 112);
+                doc.text(COMPANY + " · Take 5 / JHA · Ref " + record.id.slice(0, 8) + " · Page " + page, margin, 290);
+            }
+            function nextPage() { endPage(); doc.addPage(); page += 1; y = margin; }
+            function ensure(height) { if (y + height > 280) nextPage(); }
+            function section(title) {
+                ensure(16);
+                y += 3;
+                doc.setFillColor(teal[0], teal[1], teal[2]);
+                doc.rect(margin, y, contentW, 8, "F");
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(255, 255, 255);
+                doc.text(title, margin + 2, y + 5.4);
+                y += 12;
+            }
+            function row(label, value) {
+                const text = value && String(value).trim() ? String(value) : "—";
+                doc.setFontSize(10);
+                const valueLines = doc.splitTextToSize(text, contentW - 50);
+                const labelLines = doc.splitTextToSize(label, 46);
+                const height = Math.max(valueLines.length, labelLines.length) * 4.4 + 2;
+                ensure(height);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(95, 107, 112);
+                doc.text(labelLines, margin, y + 4);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(30, 30, 30);
+                doc.text(valueLines, margin + 50, y + 4);
+                y += height;
+                doc.setDrawColor(225, 225, 225);
+                doc.setLineWidth(0.2);
+                doc.line(margin, y - 1, margin + contentW, y - 1);
+            }
+            try {
+                const logoUrl = await fetch(LOGO).then(function (res) { return res.blob(); }).then(function (blob) {
+                    return new Promise(function (resolve) {
+                        const reader = new FileReader();
+                        reader.onload = function () { resolve(reader.result); };
+                        reader.readAsDataURL(blob);
+                    });
+                });
+                const size = await imageSize(logoUrl);
+                const lh = 14;
+                const lw = lh * size.w / size.h;
+                doc.addImage(logoUrl, "PNG", margin, y, lw, lh);
+            } catch (e) { /* Logo is optional if it cannot be loaded. */ }
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(teal[0], teal[1], teal[2]);
+            doc.text("TAKE 5", pageW - margin, y + 7, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(95, 107, 112);
+            doc.text("Pre-job risk assessment / JHA", pageW - margin, y + 13, { align: "right" });
+            y += 18;
+            doc.setFillColor(teal[0], teal[1], teal[2]);
+            doc.rect(margin, y, contentW, 1, "F");
+            y += 4;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(255, 255, 255);
+            const banner = doc.splitTextToSize(record.site + "    ·    " + record.machineType, contentW - 4);
+            doc.setFillColor(teal[0], teal[1], teal[2]);
+            doc.rect(margin, y, contentW, banner.length * 5 + 4, "F");
+            doc.text(banner, margin + 2, y + 5);
+            y += banner.length * 5 + 8;
+
+            section("1. STOP & THINK – Job details");
+            row("Technician", record.technician);
+            row("Site", record.site);
+            row("Department / location", record.department);
+            row("Machine type", record.machineType);
+            row("Make / model", record.makeModel);
+            row("Serial / asset no.", record.serialNumber);
+            row("Job / work order no.", record.jobNumber);
+            row("Job type", record.jobType);
+            row("Scope of work", record.scopeOfWork);
+            section("2. Hazards and risks");
+            row("Hazards", record.hazards.map(function (item) { return "•  " + item; }).join("\n"));
+            section("3. Controls");
+            row("Controls in place", record.controlChecks.map(function (item) { return "✓  " + item; }).join("\n"));
+            if (record.controlMeasures) row("Other controls", record.controlMeasures);
+            section("4. PROCEED SAFELY – Readiness check");
+            record.readiness.forEach(function (item) {
+                doc.setFontSize(10);
+                const lines = doc.splitTextToSize(item.q, contentW - 24);
+                const height = lines.length * 4.4 + 2;
+                ensure(height);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(30, 30, 30);
+                doc.text(lines, margin, y + 4);
+                const color = item.a === "Yes" ? [115, 141, 0] : item.a === "No" ? [193, 8, 65] : [95, 107, 112];
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(color[0], color[1], color[2]);
+                doc.text(String(item.a).toUpperCase(), pageW - margin, y + 4, { align: "right" });
+                y += height;
+            });
+            section("Time & location");
+            row("Started", dateTime(record.startedAt));
+            row("Completed", dateTime(record.completedAt));
+            if (record.latitude != null && record.longitude != null) {
+                row("GPS", coordinates(record.latitude, record.longitude, record.accuracyMetres));
+                if (record.locationTime) row("GPS fix time", dateTime(record.locationTime));
+                row("Map", mapsLink(record));
+            } else row("GPS", "Not available");
+            section("Declaration");
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(30, 30, 30);
+            const decl = doc.splitTextToSize(DECLARATION, contentW);
+            ensure(decl.length * 4.4 + 4);
+            doc.text(decl, margin, y + 4);
+            y += decl.length * 4.4 + 4;
+            if (record.signature) {
+                try {
+                    const size = await imageSize(record.signature);
+                    const sw = 70;
+                    const sh = sw * size.h / size.w;
+                    ensure(sh + 4);
+                    doc.addImage(record.signature, "PNG", margin, y, sw, sh);
+                    y += sh + 4;
+                } catch (e) { /* Signature still appears on the saved record. */ }
+            }
+            row("Signed", record.technician + " – " + dateTime(record.completedAt));
+            if (record.photos.length) {
+                section("Photos (" + record.photos.length + ")");
+                for (let i = 0; i < record.photos.length; i += 2) {
+                    const pair = record.photos.slice(i, i + 2);
+                    const sizes = [];
+                    for (const src of pair) sizes.push(await imageSize(src));
+                    const cell = (contentW - 4) / 2;
+                    const height = Math.min(70, Math.max.apply(null, sizes.map(function (s, idx) { return cell * s.h / s.w; })));
+                    ensure(height + 4);
+                    pair.forEach(function (src, idx) {
+                        const w = height * sizes[idx].w / sizes[idx].h;
+                        doc.addImage(src, "JPEG", margin + idx * (cell + 4), y, Math.min(w, cell), height);
+                    });
+                    y += height + 4;
+                }
+            }
+            endPage();
+            doc.setProperties({ title: "Take 5", subject: subjectOf(record), author: record.technician });
+            return doc.output("blob");
+        }
+
+        async function deliver(record) {
+            let pdf = null;
+            try { pdf = await buildPdf(record); }
+            catch (e) { pdf = null; }
+            const files = [];
+            if (pdf) files.push(new File([pdf], record.pdfFile, { type: "application/pdf" }));
+            record.photos.forEach(function (src, i) {
+                files.push(new File([dataUrlToBlob(src)], "photo_" + (i + 1) + ".jpg", { type: "image/jpeg" }));
+            });
+            if (files.length && navigator.canShare && navigator.canShare({ files: files })) {
+                try {
+                    await navigator.share({ files: files, title: subjectOf(record), text: "To: " + INBOX + "\n\n" + bodyOf(record) });
+                    return "shared";
+                } catch (e) {
+                    if (e && e.name === "AbortError") return "cancelled";
+                }
+            }
+            if (pdf) downloadBlob(pdf, record.pdfFile);
+            else printReport(record);
+            const link = h("a", { href: mailtoUrl(record) });
+            document.body.append(link);
+            link.click();
+            link.remove();
+            return "mailto";
+        }
+
+        function validate(draft, signed) {
+            const problems = [];
+            if (!draft.technician.trim()) problems.push("Technician name");
+            if (!draft.site.trim()) problems.push("Site / hospital");
+            if (!draft.machineType) problems.push("Machine type");
+            if (draft.machineType === "Other" && !draft.machineOther.trim()) problems.push("Describe the 'Other' machine type");
+            if (!draft.jobType) problems.push("Job type");
+            if (!draft.scopeOfWork.trim()) problems.push("Scope of work");
+            if (!draft.hazards.length && !draft.otherHazards.trim()) problems.push("Select at least one hazard (or describe other hazards)");
+            const unanswered = readinessQuestions.filter(function (q) { return !draft.readiness[q]; }).length;
+            if (unanswered) problems.push("Answer all readiness questions (" + unanswered + " remaining)");
+            if (!signed) problems.push("Technician signature");
+            return problems;
+        }
+
+        function blankDraft() {
+            return {
+                id: crypto.randomUUID(),
+                startedAt: Date.now(),
+                technician: localStorage.getItem("take5.technician") || "",
+                site: "", department: "", machineType: "", machineOther: "", makeModel: "",
+                serialNumber: "", jobNumber: "", jobType: "", scopeOfWork: "",
+                hazards: [], otherHazards: "", controlChecks: [], controlMeasures: "",
+                readiness: {}, photos: [],
+                latitude: null, longitude: null, accuracyMetres: null, locationTime: null
+            };
+        }
+        function toRecord(draft, signature) {
+            const completedAt = Date.now();
+            const machine = draft.machineType === "Other" ? (draft.machineOther.trim() || "Other") : draft.machineType;
+            const extra = draft.otherHazards.split(/\n/).map(function (line) { return line.trim(); }).filter(Boolean).map(function (line) { return "Other: " + line; });
+            return {
+                id: draft.id,
+                startedAt: draft.startedAt,
+                completedAt: completedAt,
+                technician: draft.technician.trim(),
+                site: draft.site.trim(),
+                department: draft.department.trim(),
+                machineType: machine,
+                makeModel: draft.makeModel.trim(),
+                serialNumber: draft.serialNumber.trim(),
+                jobNumber: draft.jobNumber.trim(),
+                jobType: draft.jobType,
+                scopeOfWork: draft.scopeOfWork.trim(),
+                hazards: draft.hazards.concat(extra),
+                controlChecks: controls.filter(function (item) { return draft.controlChecks.indexOf(item) >= 0; }),
+                controlMeasures: draft.controlMeasures.trim(),
+                readiness: readinessQuestions.map(function (q) { return { q: q, a: draft.readiness[q] || "—" }; }),
+                photos: draft.photos.slice(),
+                signature: signature,
+                pdfFile: "Take5_" + fileStamp(completedAt) + "_" + safeFileName(draft.site) + ".pdf",
+                latitude: draft.latitude,
+                longitude: draft.longitude,
+                accuracyMetres: draft.accuracyMetres,
+                locationTime: draft.locationTime,
+                emailedAt: null
+            };
+        }
+
+        async function showHome(message) {
+            screen = "home";
+            let records = [];
+            try { records = await loadAll(); }
+            catch (e) { records = []; }
+            const list = records.map(function (record) {
+                return h("button", { class: "card history", type: "button", onClick: function () { showDetail(record.id); } },
+                    h("strong", { text: record.site }),
+                    h("span", { class: "sub", text: record.machineType + " · " + record.jobType }),
+                    h("span", { class: "muted sub", text: record.technician + " · " + dateTime(record.completedAt) }),
+                    h("span", {
+                        class: record.emailedAt ? "ok" : "bad",
+                        text: record.emailedAt ? "Email prepared " + dateTime(record.emailedAt) : "Not yet emailed"
+                    })
+                );
+            });
+            shell("Take 5", null, null, [
+                h("section", { class: "hero" },
+                    h("h2", { text: "Before every job – Take 5" }),
+                    h("p", { text: "Stop · Identify hazards · Apply controls · Proceed safely" }),
+                    h("button", { class: "btn light", type: "button", onClick: function () { showForm(blankDraft()); } }, "+  START NEW TAKE 5")
+                ),
+                h("div", { class: "section-label", text: "Completed Take 5s in this browser" }),
+                records.length ? list : h("p", { class: "muted", text: "No Take 5s yet. Completed assessments will appear here." }),
+                h("p", { class: "note", text: "Completed Take 5s stay in this browser. Sending opens an email to " + INBOX + " and downloads the PDF to attach." })
+            ]);
+            if (message) snack(message);
+        }
+
+        function showForm(draft) {
+            screen = "form";
+            let signed = false;
+            let signatureUrl = "";
+            const sigState = { strokes: [], current: null, ctx: null, canvas: null };
+
+            function askLeave() {
+                confirmDialog("Discard this Take 5?", "Everything entered, including photos and signature, will be deleted.", "Discard", function () { showHome(); }, true);
+                const buttons = modal.querySelectorAll("button");
+                buttons[0].textContent = "Keep editing";
+                buttons[1].textContent = "Discard";
+            }
+
+            const otherWrap = field("Describe machine type", true, textInput(draft.machineOther, function (v) { draft.machineOther = v; }, { cap: "words" }));
+            otherWrap.hidden = draft.machineType !== "Other";
+            const machine = selectInput(machineTypes, draft.machineType, function (v) {
+                draft.machineType = v;
+                otherWrap.hidden = v !== "Other";
+            });
+
+            const hazardBox = h("div", {});
+            hazards.forEach(function (item) {
+                const box = h("input", { type: "checkbox" });
+                box.addEventListener("change", function () {
+                    const at = draft.hazards.indexOf(item);
+                    if (box.checked && at < 0) draft.hazards.push(item);
+                    if (!box.checked && at >= 0) draft.hazards.splice(at, 1);
+                });
+                hazardBox.append(h("label", { class: "check" }, box, h("span", { text: item })));
+            });
+            const controlBox = h("div", {});
+            controls.forEach(function (item) {
+                const box = h("input", { type: "checkbox" });
+                box.addEventListener("change", function () {
+                    const at = draft.controlChecks.indexOf(item);
+                    if (box.checked && at < 0) draft.controlChecks.push(item);
+                    if (!box.checked && at >= 0) draft.controlChecks.splice(at, 1);
+                });
+                controlBox.append(h("label", { class: "check" }, box, h("span", { text: item })));
+            });
+
+            const warn = h("div", { class: "warn", hidden: true, text: "You answered NO to a readiness question. Resolve it before starting, and record what you did in the control measures." });
+            function refreshWarn() {
+                warn.hidden = !Object.keys(draft.readiness).some(function (key) { return draft.readiness[key] === "No"; });
+            }
+            const readyBox = h("div", {});
+            readinessQuestions.forEach(function (q) {
+                const chips = h("div", { class: "chips" });
+                answers.forEach(function (a) {
+                    const btn = h("button", { type: "button", class: "chip", text: a });
+                    btn.addEventListener("click", function () {
+                        draft.readiness[q] = a;
+                        chips.querySelectorAll("button").forEach(function (chip) { chip.className = "chip"; });
+                        btn.className = "chip " + (a === "Yes" ? "yes" : a === "No" ? "no" : "na");
+                        refreshWarn();
+                    });
+                    chips.append(btn);
+                });
+                readyBox.append(h("div", {}, h("div", { class: "q", text: q }), chips));
+            });
+
+            const photoRow = h("div", { class: "photos", hidden: true });
+            const photoBusy = h("p", { class: "muted", hidden: true, text: "Adding photo…" });
+            function renderPhotos() {
+                photoRow.replaceChildren();
+                draft.photos.forEach(function (src, index) {
+                    photoRow.append(h("div", { class: "photo" },
+                        h("img", { src: src, alt: "Site or hazard photo" }),
+                        h("button", { class: "photo-x", type: "button", "aria-label": "Remove photo", onClick: function () {
+                            draft.photos.splice(index, 1);
+                            renderPhotos();
+                        } }, "×")
+                    ));
+                });
+                photoRow.hidden = draft.photos.length === 0;
+            }
+            function compress(file) {
+                return new Promise(function (resolve, reject) {
+                    const img = new Image();
+                    const url = URL.createObjectURL(file);
+                    img.onload = function () {
+                        const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+                        const canvas = document.createElement("canvas");
+                        canvas.width = Math.max(1, Math.round(img.width * scale));
+                        canvas.height = Math.max(1, Math.round(img.height * scale));
+                        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+                        URL.revokeObjectURL(url);
+                        resolve(canvas.toDataURL("image/jpeg", 0.8));
+                    };
+                    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("photo")); };
+                    img.src = url;
+                });
+            }
+            async function addFiles(list, input) {
+                photoBusy.hidden = false;
+                for (const file of list) {
+                    try { draft.photos.push(await compress(file)); } catch (e) { snack("Could not add that photo."); }
+                }
+                photoBusy.hidden = true;
+                input.value = "";
+                renderPhotos();
+            }
+            const camera = h("input", { type: "file", accept: "image/*", capture: "environment", hidden: true });
+            const gallery = h("input", { type: "file", accept: "image/*", multiple: "multiple", hidden: true });
+            camera.addEventListener("change", function () { if (camera.files.length) addFiles(camera.files, camera); });
+            gallery.addEventListener("change", function () { if (gallery.files.length) addFiles(gallery.files, gallery); });
+
+            const locText = h("div", {});
+            const locStatus = h("div", { class: "muted", text: "" });
+            let locating = false;
+            function paintLocation() {
+                locText.replaceChildren();
+                if (draft.latitude != null && draft.longitude != null) {
+                    locText.append(h("div", { text: coordinates(draft.latitude, draft.longitude, draft.accuracyMetres) }));
+                    if (draft.locationTime) locText.append(h("div", { class: "muted", text: "Fix at " + dateTime(draft.locationTime) }));
+                }
+            }
+            function fetchLocation() {
+                if (locating) return;
+                if (!navigator.geolocation) { locStatus.textContent = "Location unavailable. Check GPS is on, then tap Refresh."; return; }
+                locating = true;
+                locStatus.textContent = "Getting GPS location…";
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    locating = false;
+                    draft.latitude = pos.coords.latitude;
+                    draft.longitude = pos.coords.longitude;
+                    draft.accuracyMetres = pos.coords.accuracy;
+                    draft.locationTime = pos.timestamp;
+                    locStatus.textContent = "";
+                    paintLocation();
+                }, function (err) {
+                    locating = false;
+                    locStatus.textContent = err && err.code === 1
+                        ? "Location permission denied. Enable it in Settings to record GPS."
+                        : "Location unavailable. Check GPS is on, then tap Refresh.";
+                }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+            }
+
+            const sigLabel = h("span", { class: "muted", text: "Sign above with your finger" });
+            const clearBtn = h("button", { class: "linkish", type: "button", disabled: true, text: "Clear" });
+            const canvas = h("canvas", { class: "sig", "aria-label": "Signature" });
+            sigState.canvas = canvas;
+            function layoutSig() {
+                const w = canvas.clientWidth, ht = canvas.clientHeight;
+                if (!w || !ht) return;
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = Math.round(w * dpr);
+                canvas.height = Math.round(ht * dpr);
+                sigState.ctx = canvas.getContext("2d");
+                sigState.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                redrawSig();
+            }
+            function redrawSig() {
+                const ctx = sigState.ctx;
+                if (!ctx) return;
+                ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                ctx.strokeStyle = "#111";
+                ctx.fillStyle = "#111";
+                const all = sigState.strokes.concat(sigState.current ? [sigState.current] : []);
+                all.forEach(function (stroke) {
+                    if (!stroke.length) return;
+                    if (stroke.length === 1) {
+                        ctx.beginPath();
+                        ctx.arc(stroke[0].x, stroke[0].y, 1.25, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.beginPath();
+                        ctx.moveTo(stroke[0].x, stroke[0].y);
+                        stroke.slice(1).forEach(function (p) { ctx.lineTo(p.x, p.y); });
+                        ctx.stroke();
+                    }
+                });
+            }
+            function point(e) {
+                const r = canvas.getBoundingClientRect();
+                return { x: e.clientX - r.left, y: e.clientY - r.top };
+            }
+            function markSigned() {
+                signed = sigState.strokes.length > 0;
+                sigLabel.textContent = signed ? "Signed" : "Sign above with your finger";
+                clearBtn.disabled = !signed;
+            }
+            canvas.addEventListener("pointerdown", function (e) {
+                canvas.setPointerCapture(e.pointerId);
+                sigState.current = [point(e)];
+                redrawSig();
+                e.preventDefault();
+            });
+            canvas.addEventListener("pointermove", function (e) {
+                if (!sigState.current) return;
+                sigState.current.push(point(e));
+                redrawSig();
+            });
+            function endStroke() {
+                if (sigState.current && sigState.current.length) sigState.strokes.push(sigState.current);
+                sigState.current = null;
+                redrawSig();
+                markSigned();
+            }
+            canvas.addEventListener("pointerup", endStroke);
+            canvas.addEventListener("pointercancel", endStroke);
+            clearBtn.addEventListener("click", function () {
+                sigState.strokes = [];
+                sigState.current = null;
+                redrawSig();
+                markSigned();
+            });
+            function exportSignature() {
+                const out = document.createElement("canvas");
+                out.width = canvas.width;
+                out.height = canvas.height;
+                const ctx = out.getContext("2d");
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, out.width, out.height);
+                ctx.drawImage(canvas, 0, 0);
+                return out.toDataURL("image/png");
+            }
+
+            shell("New Take 5", askLeave, null, [
+                h("p", { class: "muted", text: "Started " + dateTime(draft.startedAt) }),
+                card("1", "Stop & think", "Job details",
+                    field("Technician name", true, textInput(draft.technician, function (v) { draft.technician = v; }, { cap: "words" })),
+                    field("Site / hospital", true, textInput(draft.site, function (v) { draft.site = v; }, { cap: "words" })),
+                    field("Department / location (e.g. CSSD, plant room)", false, textInput(draft.department, function (v) { draft.department = v; })),
+                    field("Machine type", true, machine),
+                    otherWrap,
+                    field("Make / model", false, textInput(draft.makeModel, function (v) { draft.makeModel = v; })),
+                    field("Serial / asset no.", false, textInput(draft.serialNumber, function (v) { draft.serialNumber = v; }, { cap: "characters" })),
+                    field("Job / work order no.", false, textInput(draft.jobNumber, function (v) { draft.jobNumber = v; }, { cap: "characters" })),
+                    field("Job type", true, selectInput(jobTypes, draft.jobType, function (v) { draft.jobType = v; })),
+                    field("Scope of work", true, textInput(draft.scopeOfWork, function (v) { draft.scopeOfWork = v; }, { multiline: true }))
+                ),
+                card("2", "Hazards and risks", null,
+                    h("p", { class: "muted", text: "Tick all hazards present for this job:" }),
+                    hazardBox,
+                    field("Other hazards (one per line)", false, textInput(draft.otherHazards, function (v) { draft.otherHazards = v; }, { multiline: true }))
+                ),
+                card("3", "Controls", "Put controls in place",
+                    controlBox,
+                    field("Other controls", false, textInput(draft.controlMeasures, function (v) { draft.controlMeasures = v; }, { multiline: true }))
+                ),
+                card("4", "Proceed safely", "Readiness check", readyBox, warn),
+                card("📷", "Photos", "Optional – site, hazards, isolation points",
+                    photoRow, photoBusy, camera, gallery,
+                    h("div", { class: "row-btns" },
+                        h("button", { class: "btn", type: "button", onClick: function () { camera.click(); } }, "Take photo"),
+                        h("button", { class: "btn outline", type: "button", onClick: function () { gallery.click(); } }, "From gallery")
+                    )
+                ),
+                card("📍", "Location & time", null,
+                    h("div", { class: "loc" }, locText, locStatus,
+                        h("button", { class: "icon-btn", type: "button", "aria-label": "Refresh location", onClick: fetchLocation }, "↻")
+                    ),
+                    h("p", { class: "muted", text: "Start and completion times are recorded automatically." })
+                ),
+                card("✍", "Declaration & signature", null,
+                    h("p", { text: DECLARATION }),
+                    h("div", { class: "sig-wrap" }, canvas),
+                    h("div", { class: "sig-row" }, sigLabel, clearBtn)
+                ),
+                h("button", { class: "btn", type: "button", onClick: function () {
+                    signatureUrl = signed ? exportSignature() : "";
+                    const problems = validate(draft, signed);
+                    if (problems.length) { messageDialog("Please complete", problems); return; }
+                    confirmDialog(
+                        "Complete Take 5?",
+                        "Your Take 5 will be saved in this browser and your email will be addressed to " + INBOX + ". The PDF downloads so you can attach it. Make sure you tap Send.",
+                        "Complete & send",
+                        function () { finish(); }
+                    );
+                } }, "COMPLETE & SEND")
+            ]);
+            requestAnimationFrame(layoutSig);
+            window.addEventListener("resize", layoutSig);
+            fetchLocation();
+
+            async function finish() {
+                setBusy(true);
+                const record = toRecord(draft, signatureUrl || exportSignature());
+                try {
+                    localStorage.setItem("take5.technician", record.technician);
+                    await saveRecord(record);
+                    let outcome = "mailto";
+                    try { outcome = await deliver(record); } catch (err) { outcome = "mailto"; }
+                    if (outcome !== "cancelled") {
+                        record.emailedAt = Date.now();
+                        await saveRecord(record);
+                    }
+                    setBusy(false);
+                    await showHome(outcome === "cancelled"
+                        ? "Take 5 saved. Email was not sent."
+                        : "Take 5 saved. Make sure you tapped Send in your email app.");
+                } catch (e) {
+                    setBusy(false);
+                    messageDialog("Please complete", ["Could not create the report: " + (e && e.message ? e.message : "unknown error")]);
+                }
+            }
+        }
+
+        async function showDetail(id) {
+            screen = "detail";
+            const record = await loadOne(id);
+            if (!record) { showHome("That Take 5 is no longer in this browser."); return; }
+            function info(label, value) {
+                if (!value) return null;
+                return h("div", { class: "info" }, h("span", { text: label }), h("div", { text: value }));
+            }
+            shell("Take 5", function () { showHome(); },
+                h("button", { class: "icon-btn danger", type: "button", "aria-label": "Delete", onClick: function () {
+                    confirmDialog("Delete this Take 5?", "It will be removed from this browser. Copies already emailed are not affected.", "Delete", function () {
+                        deleteRecord(id).then(function () { showHome(); });
+                    }, true);
+                } }, "⌫"),
+                [
+                    h("div", { class: "row-btns" },
+                        h("button", { class: "btn", type: "button", onClick: async function () {
+                            setBusy(true);
+                            const outcome = await deliver(record);
+                            if (outcome !== "cancelled") {
+                                record.emailedAt = Date.now();
+                                await saveRecord(record);
+                            }
+                            setBusy(false);
+                            showDetail(id);
+                            if (outcome !== "cancelled") snack("Make sure you tapped Send in your email app.");
+                        } }, "Resend email"),
+                        h("button", { class: "btn outline", type: "button", onClick: async function () {
+                            setBusy(true);
+                            try {
+                                const pdf = await buildPdf(record);
+                                openBlob(pdf, record.pdfFile);
+                            } catch (e) { printReport(record); }
+                            setBusy(false);
+                        } }, "View PDF")
+                    ),
+                    card("1", "Job details", null,
+                        info("Technician", record.technician), info("Site", record.site), info("Department / location", record.department),
+                        info("Machine type", record.machineType), info("Make / model", record.makeModel), info("Serial / asset no.", record.serialNumber),
+                        info("Job / work order no.", record.jobNumber), info("Job type", record.jobType), info("Scope of work", record.scopeOfWork)
+                    ),
+                    card("2", "Hazards and risks", null, record.hazards.map(function (item) { return h("div", { text: "•  " + item }); })),
+                    card("3", "Controls", null,
+                        record.controlChecks.map(function (item) { return h("div", { text: "✓  " + item }); }),
+                        info("Other controls", record.controlMeasures)
+                    ),
+                    card("4", "Readiness", null, record.readiness.map(function (item) {
+                        const color = item.a === "Yes" ? "var(--green)" : item.a === "No" ? "var(--red)" : "var(--grey)";
+                        return h("div", { class: "loc" }, h("div", { text: item.q }), h("strong", { text: String(item.a).toUpperCase(), style: "color:" + color }));
+                    })),
+                    card("📍", "Time & location", null,
+                        info("Started", dateTime(record.startedAt)),
+                        info("Completed", dateTime(record.completedAt)),
+                        record.latitude != null
+                            ? [info("GPS", coordinates(record.latitude, record.longitude, record.accuracyMetres)), h("a", { href: mapsLink(record), target: "_blank", rel: "noopener", text: "Open in Maps" })]
+                            : info("GPS", "Not available")
+                    ),
+                    record.photos.length ? card("📷", "Photos (" + record.photos.length + ")", null, record.photos.map(function (src) {
+                        return h("img", { class: "shot", src: src, alt: "Site or hazard photo" });
+                    })) : null,
+                    card("✍", "Signature", null,
+                        h("img", { class: "sig-view", src: record.signature, alt: "Signature" }),
+                        h("p", { class: "muted", text: "Signed by " + record.technician })
+                    )
+                ]
+            );
+        }
+
+        window.addEventListener("beforeunload", function (e) {
+            if (screen === "form") {
+                e.preventDefault();
+                e.returnValue = "";
+            }
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeModal();
+        });
+        showHome();
+    </script>
+</body>
+</html>
