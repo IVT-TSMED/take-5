@@ -1,0 +1,16 @@
+.gradle/
+.kotlin/
+build/
+app/build/
+local.properties
+*.apk
+.idea/
+*.iml
+captures/
+*.hprof
+.DS_Store
+
+# Local UI captures
+/form.xml
+/window.xml
+/take5-*.png

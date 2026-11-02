@@ -1,0 +1,10 @@
+<resources>
+    <color name="ivt_teal">#276884</color>
+    <color name="ivt_background">#F2F2F2</color>
+
+    <style name="Theme.Take5" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/ivt_teal</item>
+        <item name="android:colorAccent">@color/ivt_teal</item>
+        <item name="android:windowBackground">@color/ivt_background</item>
+    </style>
+</resources>
