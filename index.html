@@ -243,7 +243,7 @@
     <div id="modal"></div>
     <div id="toast" hidden></div>
     <script>
-        const VERSION = "v2026.11.3.3";
+        const VERSION = "v2026.11.3.4";
         const COMPANY = "In Vitro Technologies";
         const INBOX = "david.bailey@invitro.com.au";
         const LOGO = "app/src/main/res/drawable-nodpi/ivt_logo.png";
@@ -532,14 +532,6 @@
             }
             return url;
         }
-        function dataUrlToBlob(dataUrl) {
-            const parts = dataUrl.split(",");
-            const mime = /data:(.*?);/.exec(parts[0])[1];
-            const bin = atob(parts[1]);
-            const arr = new Uint8Array(bin.length);
-            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-            return new Blob([arr], { type: mime });
-        }
         function downloadBlob(blob, filename) {
             const url = URL.createObjectURL(blob);
             const a = h("a", { href: url, download: filename });
@@ -817,26 +809,12 @@
         }
 
         function openMail(record) {
-            const link = h("a", { href: mailtoUrl(record) });
-            document.body.append(link);
-            link.click();
-            link.remove();
+            window.location.href = mailtoUrl(record);
         }
         async function deliver(record) {
             let pdf = null;
             try { pdf = await buildPdf(record); }
             catch (e) { pdf = null; }
-            const files = [];
-            if (pdf) files.push(new File([pdf], record.pdfFile, { type: "application/pdf" }));
-            record.photos.forEach(function (src, i) {
-                files.push(new File([dataUrlToBlob(src)], "photo_" + (i + 1) + ".jpg", { type: "image/jpeg" }));
-            });
-            if (files.length && navigator.canShare && navigator.canShare({ files: files })) {
-                try {
-                    await navigator.share({ files: files, title: subjectOf(record), text: "To: " + INBOX + "\n\n" + bodyOf(record) });
-                    return "shared";
-                } catch (e) { /* Share did not send. Download the PDF and open the email instead. */ }
-            }
             if (pdf) downloadBlob(pdf, record.pdfFile);
             else printReport(record);
             return "mailto";
