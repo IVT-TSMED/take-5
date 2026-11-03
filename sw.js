@@ -1,4 +1,4 @@
-const CACHE = "take5-v2";
+const CACHE = "take5-v3";
 const SHELL = [
     "./",
     "./index.html",

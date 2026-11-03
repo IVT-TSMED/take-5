@@ -234,6 +234,7 @@
             z-index: 30;
         }
         .note { font-size: 13px; color: var(--grey); padding: 0 4px 12px; }
+        .version { text-align: center; font-size: 12px; color: var(--grey); padding: 4px 12px 20px; }
         a { color: var(--teal); }
     </style>
 </head>
@@ -242,6 +243,7 @@
     <div id="modal"></div>
     <div id="toast" hidden></div>
     <script>
+        const VERSION = "v2026.11.3.1";
         const COMPANY = "In Vitro Technologies";
         const INBOX = "david.bailey@invitro.com.au";
         const LOGO = "app/src/main/res/drawable-nodpi/ivt_logo.png";
@@ -418,7 +420,7 @@
             const header = onBack || extra
                 ? h("div", { class: "topbar" }, h("div", { class: "bar" }, barKids), h("div", { class: "accent" }))
                 : h("div", { class: "topbar" }, h("div", { class: "brand" }, logo(), h("h1", { text: title })), h("div", { class: "accent" }));
-            app.replaceChildren(h("div", { class: "wrap" }, header, h("div", { class: "page" }, bodyNodes)));
+            app.replaceChildren(h("div", { class: "wrap" }, header, h("div", { class: "page" }, bodyNodes), h("p", { class: "version", text: VERSION })));
         }
         function card(step, title, subtitle) {
             const body = h("div", { class: "card-b" });
