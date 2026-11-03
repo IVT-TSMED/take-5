@@ -243,7 +243,7 @@
     <div id="modal"></div>
     <div id="toast" hidden></div>
     <script>
-        const VERSION = "v2026.11.3.4";
+        const VERSION = "v2026.11.3.5";
         const COMPANY = "In Vitro Technologies";
         const INBOX = "david.bailey@invitro.com.au";
         const LOGO = "app/src/main/res/drawable-nodpi/ivt_logo.png";
@@ -808,6 +808,11 @@
             return doc.output("blob");
         }
 
+        function isPhone() {
+            const ua = navigator.userAgent || "";
+            if (/Android|iPhone|iPad|iPod/i.test(ua)) return true;
+            return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+        }
         function openMail(record) {
             window.location.href = mailtoUrl(record);
         }
@@ -815,6 +820,21 @@
             let pdf = null;
             try { pdf = await buildPdf(record); }
             catch (e) { pdf = null; }
+            if (pdf && isPhone() && navigator.canShare) {
+                const file = new File([pdf], record.pdfFile, { type: "application/pdf" });
+                if (navigator.canShare({ files: [file] })) {
+                    const started = performance.now();
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            try { await navigator.clipboard.writeText(INBOX); } catch (e) { /* Pasting the address is optional. */ }
+                        }
+                        await navigator.share({ files: [file], title: subjectOf(record), text: bodyOf(record) });
+                        return "shared";
+                    } catch (e) {
+                        if (e && e.name === "AbortError" && performance.now() - started > 800) return "cancelled";
+                    }
+                }
+            }
             if (pdf) downloadBlob(pdf, record.pdfFile);
             else printReport(record);
             return "mailto";
@@ -942,7 +962,7 @@
                 installOffer(),
                 h("div", { class: "section-label", text: "Completed Take 5s in this browser" }),
                 records.length ? list : h("p", { class: "muted", text: "No Take 5s yet. Completed assessments will appear here." }),
-                h("p", { class: "note", text: "Completed Take 5s stay in this browser. Sending opens an email to " + INBOX + " and downloads the PDF to attach." })
+                h("p", { class: "note", text: "Completed Take 5s stay in this browser. Sending opens an email to " + INBOX + ". On a phone the PDF is attached. On a computer it downloads so you can attach it." })
             ]);
             if (message) snack(message);
         }
@@ -1218,7 +1238,9 @@
                     if (problems.length) { messageDialog("Please complete", problems); return; }
                     confirmDialog(
                         "Complete Take 5?",
-                        "Your Take 5 will be saved in this browser and your email will be addressed to " + INBOX + ". The PDF downloads so you can attach it. Make sure you tap Send.",
+                        isPhone()
+                            ? "Your Take 5 will be saved. Choose your email app and the PDF is attached. If To is empty, paste " + INBOX + ", then tap Send."
+                            : "Your Take 5 will be saved in this browser and your email will be addressed to " + INBOX + ". The PDF downloads so you can attach it. Make sure you tap Send.",
                         "Complete & send",
                         function () { finish(); }
                     );
@@ -1236,11 +1258,17 @@
                     await saveRecord(record);
                     let outcome = "mailto";
                     try { outcome = await deliver(record); } catch (err) { outcome = "mailto"; }
-                    record.emailedAt = Date.now();
-                    await saveRecord(record);
-                    if (outcome === "mailto") openMail(record);
+                    if (outcome !== "cancelled") {
+                        record.emailedAt = Date.now();
+                        await saveRecord(record);
+                        if (outcome === "mailto") openMail(record);
+                    }
                     setBusy(false);
-                    await showHome("Take 5 saved. Make sure you tapped Send in your email app.");
+                    await showHome(outcome === "cancelled"
+                        ? "Take 5 saved. Email was not sent."
+                        : outcome === "shared"
+                            ? "Take 5 saved. The PDF is attached. If To is empty, paste " + INBOX + " and tap Send."
+                            : "Take 5 saved. Make sure you tapped Send in your email app.");
                 } catch (e) {
                     setBusy(false);
                     messageDialog("Please complete", ["Could not create the report: " + (e && e.message ? e.message : "unknown error")]);
@@ -1268,12 +1296,18 @@
                             setBusy(true);
                             let outcome = "mailto";
                             try { outcome = await deliver(record); } catch (err) { outcome = "mailto"; }
-                            record.emailedAt = Date.now();
-                            await saveRecord(record);
-                            if (outcome === "mailto") openMail(record);
+                            if (outcome !== "cancelled") {
+                                record.emailedAt = Date.now();
+                                await saveRecord(record);
+                                if (outcome === "mailto") openMail(record);
+                            }
                             setBusy(false);
                             showDetail(id);
-                            snack("Make sure you tapped Send in your email app.");
+                            snack(outcome === "cancelled"
+                                ? "Email was not sent."
+                                : outcome === "shared"
+                                    ? "The PDF is attached. If To is empty, paste " + INBOX + " and tap Send."
+                                    : "Make sure you tapped Send in your email app.");
                         } }, "Resend email"),
                         h("button", { class: "btn outline", type: "button", onClick: async function () {
                             setBusy(true);
