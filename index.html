@@ -243,7 +243,7 @@
     <div id="modal"></div>
     <div id="toast" hidden></div>
     <script>
-        const VERSION = "v2026.11.3.2";
+        const VERSION = "v2026.11.3.3";
         const COMPANY = "In Vitro Technologies";
         const INBOX = "david.bailey@invitro.com.au";
         const LOGO = "app/src/main/res/drawable-nodpi/ivt_logo.png";
@@ -554,6 +554,24 @@
             if (!opened) downloadBlob(blob, filename);
             setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
         }
+        function jpegForPdf(src, maxEdge, quality) {
+            return new Promise(function (resolve, reject) {
+                const img = new Image();
+                img.onload = function () {
+                    const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+                    const canvas = document.createElement("canvas");
+                    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+                    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL("image/jpeg", quality));
+                };
+                img.onerror = function () { reject(new Error("image")); };
+                img.src = src;
+            });
+        }
         function imageSize(src) {
             return new Promise(function (resolve, reject) {
                 const img = new Image();
@@ -685,10 +703,11 @@
                         reader.readAsDataURL(blob);
                     });
                 });
-                const size = await imageSize(logoUrl);
+                const logoJpeg = await jpegForPdf(logoUrl, 240, 0.72);
+                const size = await imageSize(logoJpeg);
                 const lh = 14;
                 const lw = lh * size.w / size.h;
-                doc.addImage(logoUrl, "PNG", margin, y, lw, lh);
+                doc.addImage(logoJpeg, "JPEG", margin, y, lw, lh);
             } catch (e) { /* Logo is optional if it cannot be loaded. */ }
             doc.setFont("helvetica", "bold");
             doc.setFontSize(18);
@@ -759,19 +778,27 @@
             y += decl.length * 4.4 + 4;
             if (record.signature) {
                 try {
-                    const size = await imageSize(record.signature);
+                    const signature = await jpegForPdf(record.signature, 480, 0.6);
+                    const size = await imageSize(signature);
                     const sw = 70;
                     const sh = sw * size.h / size.w;
                     ensure(sh + 4);
-                    doc.addImage(record.signature, "PNG", margin, y, sw, sh);
+                    doc.addImage(signature, "JPEG", margin, y, sw, sh);
                     y += sh + 4;
                 } catch (e) { /* Signature still appears on the saved record. */ }
             }
             row("Signed", record.technician + " – " + dateTime(record.completedAt));
             if (record.photos.length) {
                 section("Photos (" + record.photos.length + ")");
-                for (let i = 0; i < record.photos.length; i += 2) {
-                    const pair = record.photos.slice(i, i + 2);
+                const photoEdge = record.photos.length > 2 ? 480 : 640;
+                const photoQuality = record.photos.length > 2 ? 0.42 : 0.5;
+                const photos = [];
+                for (const src of record.photos) {
+                    try { photos.push(await jpegForPdf(src, photoEdge, photoQuality)); }
+                    catch (e) { photos.push(src); }
+                }
+                for (let i = 0; i < photos.length; i += 2) {
+                    const pair = photos.slice(i, i + 2);
                     const sizes = [];
                     for (const src of pair) sizes.push(await imageSize(src));
                     const cell = (contentW - 4) / 2;
@@ -1023,13 +1050,13 @@
                     const img = new Image();
                     const url = URL.createObjectURL(file);
                     img.onload = function () {
-                        const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+                        const scale = Math.min(1, 1024 / Math.max(img.width, img.height));
                         const canvas = document.createElement("canvas");
                         canvas.width = Math.max(1, Math.round(img.width * scale));
                         canvas.height = Math.max(1, Math.round(img.height * scale));
                         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
                         URL.revokeObjectURL(url);
-                        resolve(canvas.toDataURL("image/jpeg", 0.8));
+                        resolve(canvas.toDataURL("image/jpeg", 0.6));
                     };
                     img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("photo")); };
                     img.src = url;
@@ -1153,14 +1180,16 @@
                 markSigned();
             });
             function exportSignature() {
+                const maxW = 480;
+                const scale = Math.min(1, maxW / canvas.width);
                 const out = document.createElement("canvas");
-                out.width = canvas.width;
-                out.height = canvas.height;
+                out.width = Math.max(1, Math.round(canvas.width * scale));
+                out.height = Math.max(1, Math.round(canvas.height * scale));
                 const ctx = out.getContext("2d");
                 ctx.fillStyle = "#fff";
                 ctx.fillRect(0, 0, out.width, out.height);
-                ctx.drawImage(canvas, 0, 0);
-                return out.toDataURL("image/png");
+                ctx.drawImage(canvas, 0, 0, out.width, out.height);
+                return out.toDataURL("image/jpeg", 0.6);
             }
 
             shell("New Take 5", askLeave, null, [
