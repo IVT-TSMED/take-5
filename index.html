@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#276884">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Take 5">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Take 5</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>5</text></svg>">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -831,6 +837,44 @@
             };
         }
 
+        let installPrompt = null;
+        window.addEventListener("beforeinstallprompt", function (event) {
+            event.preventDefault();
+            installPrompt = event;
+            const button = document.getElementById("install-app");
+            if (button) button.hidden = false;
+        });
+        window.addEventListener("appinstalled", function () {
+            installPrompt = null;
+            const button = document.getElementById("install-app");
+            if (button) button.hidden = true;
+        });
+
+        function installOffer() {
+            const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+            if (standalone) return null;
+            const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+            if (ios) {
+                return h("p", { class: "note", text: "To install Take 5, tap Share, then Add to Home Screen." });
+            }
+            return h("button", {
+                id: "install-app",
+                class: "btn outline",
+                type: "button",
+                hidden: !installPrompt,
+                onClick: function () {
+                    if (!installPrompt) return;
+                    const prompt = installPrompt;
+                    installPrompt = null;
+                    prompt.prompt();
+                    prompt.userChoice.then(function () {
+                        const button = document.getElementById("install-app");
+                        if (button) button.hidden = true;
+                    });
+                }
+            }, "Install app");
+        }
+
         async function showHome(message) {
             screen = "home";
             let records = [];
@@ -853,6 +897,7 @@
                     h("p", { text: "Stop · Identify hazards · Apply controls · Proceed safely" }),
                     h("button", { class: "btn light", type: "button", onClick: function () { showForm(blankDraft()); } }, "+  START NEW TAKE 5")
                 ),
+                installOffer(),
                 h("div", { class: "section-label", text: "Completed Take 5s in this browser" }),
                 records.length ? list : h("p", { class: "muted", text: "No Take 5s yet. Completed assessments will appear here." }),
                 h("p", { class: "note", text: "Completed Take 5s stay in this browser. Sending opens an email to " + INBOX + " and downloads the PDF to attach." })
@@ -1240,6 +1285,9 @@
             if (e.key === "Escape") closeModal();
         });
         showHome();
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js").catch(function () {});
+        }
     </script>
 </body>
 </html>

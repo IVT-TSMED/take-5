@@ -2,7 +2,7 @@
 
 Pre-job risk assessment / JHA for In Vitro Technologies technicians.
 
-The browser version is published at https://ivt-tsmed.github.io/take-5/ (`index.html`). Completed assessments stay in that browser. Sending opens an email to the monitored inbox and downloads the PDF to attach.
+The browser version is published at https://ivt-tsmed.github.io/take-5/ (`index.html`). It can be installed from the browser, and completed assessments stay in that browser. Sending opens an email to the monitored inbox and downloads the PDF to attach.
 
 The Android project in this folder is the same Take 5 on a phone.
 
